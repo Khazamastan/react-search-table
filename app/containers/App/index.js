@@ -10,11 +10,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
-import utils from "utils/utils";
 import Table from "components/Table"
 import contacts from "../../data/contacts.json";
 import Pagination from "components/Pagination";
 import AppWrapper from "./AppWrapper";
+import Input from "components/Input";
+import Select from "components/Select";
+import _ from "lodash";
 
 class App extends React.Component {
   headers = {
@@ -40,6 +42,7 @@ class App extends React.Component {
     }
   };
   PER_PAGE = 50;
+  pageCounts = [10, 20, 50, 100];
   constructor(props, context) {
     super(props, context);
     this.state = {
@@ -49,23 +52,28 @@ class App extends React.Component {
       filteredContacts: contacts
     }
   }
-  pageCounts = [10, 20, 50, 100];
-  onChange = (e) => {
+  /*filter the items based on search query */
+  onChangeQuery = (e) => {
     const query = e.target.value;
-    this.setState({ query }, () => {
-      utils.debounce(this.filterItems(contacts, query), 1000);
-    })
+    if(query.length === 1)
+      this.setState({currentPage : 0});
+
+    this.filterItems(contacts, query);
   }
-  /* @param contacts 
+  /* 
+    debounce your search so that it will search only when user stops typing for 300ms;
+    @param contacts 
     @param query
   */
-  filterItems(contacts, query) {
+
+  filterItems = _.debounce(function (contacts, query) {
+    console.log(query);
     query = query.toLowerCase();
     const filteredContacts = contacts.filter(contact => {
       var exists = Object.keys(contact).some(field => {
         const fieldValue = contact[field];
         if (fieldValue && fieldValue != "NULL" && (fieldValue.toString().toLowerCase().indexOf(query) > -1)) {
-          return true;
+          return true; 
         }
       });
       if (exists) {
@@ -74,17 +82,23 @@ class App extends React.Component {
     });
     this.setState({ filteredContacts })
 
-  }
+  }, 300)
+
+  /* change no of items page */
   onChangePerPageCount = (e) => {
     const index = e.nativeEvent.target.selectedIndex;
     const perPage = parseInt(e.nativeEvent.target[index].text);
     this.setState({ perPage });
   }
+
+  /* change page number(or go to the page) */
   onChangePageNumber = currentPage => {
     this.setState({ currentPage: currentPage - 1 });
   }
+
   render() {
     const { query, currentPage, perPage } = this.state;
+    const allContactsCount = contacts.length;
     var { filteredContacts } = this.state;
     const start = currentPage * perPage;
     const end = currentPage * perPage + perPage;
@@ -92,23 +106,20 @@ class App extends React.Component {
     filteredContacts = filteredContacts.slice(start, end);
     return (
       <AppWrapper>
-        <Helmet
-          titleTemplate="%s - The Audio DB"
-          defaultTitle="The Audio DB"
-        >
-          <meta name="description" content="A The Audio DB application" /> 
+        <Helmet titleTemplate="%s - The Table Search" defaultTitle="The Table Search">
+          <meta name="description" content="The Table Search application" />
         </Helmet>
-        <select value={perPage} className="perPage" onChange={this.onChangePerPageCount}>
-          {
-            this.pageCounts.map(pageCount => <option key={pageCount} value={pageCount}>{pageCount}</option>)
-          }
-        </select>
-        <input
+        <h1>Contacts</h1>
+        <Select
+          pageCounts={this.pageCounts}
+          value={perPage}
+          onChange={this.onChangePerPageCount}
+        />
+        <Input
           type="text"
           placeholder="Search here"
           className="search"
-          value={query}
-          onChange={this.onChange}
+          onChange={this.onChangeQuery}
         />
         <Table contacts={filteredContacts} headers={this.headers} />
         <Pagination
@@ -121,7 +132,7 @@ class App extends React.Component {
   }
 }
 
-export default  App;
+export default App;
 
 
 

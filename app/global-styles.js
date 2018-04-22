@@ -39,6 +39,9 @@ injectGlobal`
     font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   }
   
+  h1{
+    margin : 20px 0;
+  }
   h2 {
     text-align: center;
     padding: 20px 0;
@@ -47,6 +50,14 @@ injectGlobal`
   table th,
   table td {
     white-space: nowrap;
+  }
+
+  .no-results{
+    display : flex;
+    min-height : 150px;
+    justify-content: center;
+    align-items : center;
+    font-weight : bold;
   }
 
 `;
